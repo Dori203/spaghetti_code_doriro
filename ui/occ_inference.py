@@ -1098,7 +1098,7 @@ def send_mail(attach_file_name='model.gltf'):
 
 if __name__ == '__main__':
     from utils import image_utils
-    send_mail()
+    # send_mail()
     # beautify()
     # look_on_attn()
     # opt_ = Options(device=CUDA(0), tag='tables_no_dis_split', model_name='occ_gmm').load()
@@ -1135,7 +1135,7 @@ if __name__ == '__main__':
     item_b = num_to_path_dict.get(209)
     item_c = num_to_path_dict.get(1606)
     item_d = num_to_path_dict.get(725)
-    item_e = num_to_path_dict.get(262)
+    item_e = num_to_path_dict.get(218)
 
 
     # item_c = num_to_path_dict.get(6240)
@@ -1209,7 +1209,7 @@ if __name__ == '__main__':
     #                    (2, 6, 7, 10, 14, 15), (2, 6, 7, 10, 14, 15), num_samples=2, res=100)
     # items = [item_a]
 
-    inference.mix_multiple_files_doriro([item_a, item_b],[half,half],name="top")
+    # inference.mix_multiple_files_doriro([item_a, item_b],[half,half],name="top")
     # inference.mix_multiple_files_doriro(items,[alpha_mid],name="mid")
     # inference.mix_multiple_files_doriro(items,[alpha_bottom],name="bottom")
     # inference.mix_multiple_files_doriro(items,[alpha_all],name="all")
@@ -1354,47 +1354,47 @@ if __name__ == '__main__':
     # ----------------------------------------------------------------------
 
     #
-    # angles = np.arange(0.0, 1.0, 1.0/99)
-    # angles = angles.tolist()
-    # angles.append(1.0)
-    # print(len(angles), angles)
-    # frame_counter = 0
-    # for angle in angles:
-    #     frame_counter += 1
-    #     inference.interpolate_from_files_doriro_angles(item_a=item_a, item_b=item_b, alpha_x=angle, res=256, counter = frame_counter)
-    # print("finished a -> b, frame counter is: ", frame_counter)
-    # random_frames = 20
-    # inference.mix_file_video(item_b,
-    #                   (2, 6, 7, 10, 14, 15), (2, 6, 7, 10, 14, 15), num_samples=random_frames, counter=frame_counter+1, res=256)
-    # frame_counter += random_frames
-    # print("finished random b, frame counter is: ", frame_counter)
-    # for angle in angles:
-    #     frame_counter += 1
-    #     inference.interpolate_from_files_doriro_angles(item_a=item_b, item_b=item_c, alpha_x=angle, res=256, counter = frame_counter)
-    # print("finished b -> c, frame counter is: ", frame_counter)
-    #
-    # for angle in angles:
-    #     frame_counter += 1
-    #     inference.interpolate_from_files_doriro_angles(item_a=item_c, item_b=item_d, alpha_x=angle, res=256, counter = frame_counter)
-    # print("finished c -> d, frame counter is: ", frame_counter)
-    #
-    # random_frames = 20
-    # inference.mix_file_video(item_d,
-    #                    (2, 6, 7, 10, 14, 15), (2, 6, 7, 10, 14, 15), num_samples=random_frames, counter=frame_counter+1, res=256)
-    # frame_counter += random_frames
-    # print("finished random d, frame counter is: ", frame_counter)
-    #
-    # for angle in angles:
-    #     frame_counter += 1
-    #     inference.interpolate_from_files_doriro_angles(item_a=item_d, item_b=item_e, alpha_x=angle, res=256, counter = frame_counter)
-    #
-    # print("finished d -> e, frame counter is: ", frame_counter)
-    #
-    # for angle in angles:
-    #     frame_counter += 1
-    #     inference.interpolate_from_files_doriro_angles(item_a=item_e, item_b=item_a, alpha_x=angle, res=256, counter = frame_counter)
-    #
-    # print("finished d -> e, frame counter is: ", frame_counter)
+    angles = np.arange(0.0, 1.0, 1.0/99)
+    angles = angles.tolist()
+    angles.append(1.0)
+    print(len(angles), angles)
+    frame_counter = 0
+    for angle in angles:
+        frame_counter += 1
+        inference.interpolate_from_files_doriro_angles(item_a=item_a, item_b=item_b, alpha_x=angle, res=256, counter = frame_counter)
+    print("finished a -> b, frame counter is: ", frame_counter)
+    random_frames = 1
+    inference.mix_file_video(item_b,
+                      (2, 6, 7, 10, 14, 15), (2, 6, 7, 10, 14, 15), num_samples=random_frames, counter=frame_counter+1, res=256)
+    frame_counter += random_frames
+    print("finished random b, frame counter is: ", frame_counter)
+    for angle in angles:
+        frame_counter += 1
+        inference.interpolate_from_files_doriro_angles(item_a=item_b, item_b=item_c, alpha_x=angle, res=256, counter = frame_counter)
+    print("finished b -> c, frame counter is: ", frame_counter)
+
+    for angle in angles:
+        frame_counter += 1
+        inference.interpolate_from_files_doriro_angles(item_a=item_c, item_b=item_d, alpha_x=angle, res=256, counter = frame_counter)
+    print("finished c -> d, frame counter is: ", frame_counter)
+
+    random_frames = 2
+    inference.mix_file_video(item_d,
+                       (2, 6, 7, 10, 14, 15), (2, 6, 7, 10, 14, 15), num_samples=random_frames, counter=frame_counter+1, res=256)
+    frame_counter += random_frames
+    print("finished random d, frame counter is: ", frame_counter)
+
+    for angle in angles:
+        frame_counter += 1
+        inference.interpolate_from_files_doriro_angles(item_a=item_d, item_b=item_e, alpha_x=angle, res=256, counter = frame_counter)
+
+    print("finished d -> e, frame counter is: ", frame_counter)
+
+    for angle in angles:
+        frame_counter += 1
+        inference.interpolate_from_files_doriro_angles(item_a=item_e, item_b=item_a, alpha_x=angle, res=256, counter = frame_counter)
+
+    print("finished d -> e, frame counter is: ", frame_counter)
 
 
     # ----------------------------------------------------------------------

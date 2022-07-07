@@ -45,6 +45,10 @@ class Options:
         return f'{const.ARCHIVE_IMAGES}'
 
     @property
+    def archive_model_folder(self):
+        return f'{const.ARCHIVE_MODELS}'
+
+    @property
     def archive_json_folder(self):
         return f'{const.ARCHIVE_JSON}'
 

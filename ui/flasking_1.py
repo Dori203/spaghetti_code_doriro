@@ -1403,12 +1403,6 @@ def mix():
                                   int(data.get('chair_4_top', '')))]
     print(chairs)
     print(alphas)
-    empty_alpha = [0.0 for i in range(16)]
-    empty_chair = 2
-    alphas = [empty_alpha] + alphas
-    chairs = [2]+chairs
-    print(chairs)
-    print(alphas)
     restart_counter += 1
     print('restart_counter value is: ',restart_counter)
     if(restart_counter == 3):
@@ -1427,6 +1421,7 @@ def archive():
     data = data.get('body', '')
     data = json.loads(data)
     name = data.get('name', '')
+    creator = data.get('creator', '')
     print(name)
     chairs = [int(data.get('chair_1', '')), int(data.get('chair_2', '')), int(data.get('chair_3', '')),
               int(data.get('chair_4', ''))]
@@ -1449,20 +1444,25 @@ def archive():
         listObj = json.load(fp)
         listObj.append({
             "itemName": f"{name}",
-            "chair_1": chairs[0],
-            "chair_2": chairs[1],
-            "chair_3": chairs[2],
-            "chair_4": chairs[3],
-            "chair_1_values": [data.get('chair_1_top', ''), data.get('chair_1_mid', ''), data.get('chair_1_bottom', '')],
-            "chair_2_values": [data.get('chair_2_top', ''), data.get('chair_2_mid', ''), data.get('chair_2_bottom', '')],
-            "chair_3_values": [data.get('chair_3_top', ''), data.get('chair_3_mid', ''), data.get('chair_3_bottom', '')],
-            "chair_4_values": [data.get('chair_4_top', ''), data.get('chair_4_mid', ''), data.get('chair_4_bottom', '')],
+            "year": "2022",
+            "creator": f"{creator} X chAIr",
+            # "chair_1": chairs[0],
+            # "chair_2": chairs[1],
+            # "chair_3": chairs[2],
+            # "chair_4": chairs[3],
+            # "chair_1_values": [data.get('chair_1_top', ''), data.get('chair_1_mid', ''), data.get('chair_1_bottom', '')],
+            # "chair_2_values": [data.get('chair_2_top', ''), data.get('chair_2_mid', ''), data.get('chair_2_bottom', '')],
+            # "chair_3_values": [data.get('chair_3_top', ''), data.get('chair_3_mid', ''), data.get('chair_3_bottom', '')],
+            # "chair_4_values": [data.get('chair_4_top', ''), data.get('chair_4_mid', ''), data.get('chair_4_bottom', '')],
         })
     with open(file_name, 'w') as json_file:
         json.dump(listObj, json_file,
                   indent=4,
                   separators=(',', ': '))
-    print("done with json,saving image")
+    print("done with json, saving file")
+    gltf_to_save = trimesh.exchange.gltf.export_glb(mesh, include_normals=True)
+    with open(f"{inference.opt.archive_model_folder}/{name}.gltf", 'wb') as f:
+        f.write(gltf_to_save)
     return save_chair_png(mesh, path=f"{inference.opt.archive_image_folder}/chair_{name}.png")
 
 
