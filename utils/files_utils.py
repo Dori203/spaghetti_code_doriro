@@ -100,7 +100,6 @@ def path_init(suffix: str, path_arg_ind: int, is_save: bool):
 
     return wrapper
 
-
 def copy_file(src: str, dest: str, force=False):
     if const.DEBUG:
         return
@@ -112,7 +111,6 @@ def copy_file(src: str, dest: str, force=False):
             print("Destination file already exist. To override, set force=True")
     return False
 
-
 def load_image(path: str, color_type: str = 'RGB') -> ARRAY:
     for suffix in ('.png', '.jpg'):
         path_ = add_suffix(path, suffix)
@@ -122,7 +120,6 @@ def load_image(path: str, color_type: str = 'RGB') -> ARRAY:
     image = Image.open(path).convert(color_type)
     return V(image)
 
-
 @path_init('.png', 1, True)
 def save_image(image: ARRAY, path: str):
     if type(image) is ARRAY:
@@ -130,7 +127,6 @@ def save_image(image: ARRAY, path: str):
             image = image[:, :, 0]
         image = Image.fromarray(image)
     image.save(path)
-
 
 def save_np(arr_or_dict: Union[ARRAY, T, dict], path: str):
     if const.DEBUG:
@@ -145,11 +141,9 @@ def save_np(arr_or_dict: Union[ARRAY, T, dict], path: str):
             path = remove_suffix(path, '.npy')
         np.save(path, arr_or_dict)
 
-
 @path_init('.npy', 0, False)
 def load_np(path: str):
     return np.load(path)
-
 
 @path_init('.pkl', 0, False)
 def load_pickle(path: str):
@@ -163,7 +157,6 @@ def load_pickle(path: str):
                 data = pickle5.load(f)
     return data
 
-
 @path_init('.pkl', 1, True)
 def save_pickle(obj, path: str):
     if const.DEBUG:
@@ -171,14 +164,12 @@ def save_pickle(obj, path: str):
     with open(path, 'wb') as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
 
-
 def load_txt_labels(path: str) -> VN:
     for suffix in ('.txt', '.seg'):
         path_ = add_suffix(path, suffix)
         if os.path.isfile(path_):
             return np.loadtxt(path_, dtype=np.int64) - 1
     return None
-
 
 @path_init('.txt', 0, False)
 def load_txt(path: str) -> List[str]:
@@ -189,13 +180,6 @@ def load_txt(path: str) -> List[str]:
                 data.append(line.strip())
     return data
 
-
-# def load_points(path: str) -> T:
-#     path = add_suffix(path, '.pts')
-#     points = [int_b(num) for num in load_txt(path)]
-#     return torch.tensor(points, dtype=torch.int64)
-
-
 def save_txt(array, path: str):
     if const.DEBUG:
         return
@@ -203,7 +187,6 @@ def save_txt(array, path: str):
     with open(path_, 'w') as f:
         for i, num in enumerate(array):
             f.write(f'{num}{" " if i < len(array) - 1 else ""}')
-
 
 def move_file(src: str, dest: str):
     if const.DEBUG:
@@ -213,12 +196,10 @@ def move_file(src: str, dest: str):
         return True
     return False
 
-
 @path_init('.json', 1, True)
 def save_json(obj, path: str):
     with open(path, 'w') as f:
         json.dump(obj, f, indent=4)
-
 
 def collect(root: str, *suffix, prefix='') -> List[List[str]]:
     if os.path.isfile(root):
@@ -241,7 +222,6 @@ def collect(root: str, *suffix, prefix='') -> List[List[str]]:
                         paths.append((f'{add_suffix(path, "/")}', file_name, file_extension))
             paths.sort(key=lambda x: os.path.join(x[1], x[2]))
     return paths
-
 
 def delete_all(root:str, *suffix: str):
     if const.DEBUG:
@@ -270,7 +250,6 @@ def colors_to_colors(colors: COLORS, mesh: T_Mesh) -> T:
         colors = colors.unsqueeze(int(colors.shape[0] != 3)).expand_as(mesh[0])
     return colors
 
-# TODO DORI
 def load_mesh(file_name: str, dtype: Union[type(T), type(V)] = T,
               device: D = CPU) -> Union[T_Mesh, V_Mesh, T, Tuple[T, List[List[int]]]]:
 
@@ -491,12 +470,35 @@ def export_mesh_edelman(mesh: Union[V_Mesh, T_Mesh, T, Tuple[T, List[List[int]]]
     mesh.merge_vertices()
     mesh = open3d.geometry.TriangleMesh.simplify_quadric_decimation(mesh.as_open3d, 8000)
     open3d.io.write_triangle_mesh(file_name, mesh)
-    # mesh.export(file_name)
+
     return os.path.basename(file_name)
 
+def return_obj_mesh(mesh: Union[V_Mesh, T_Mesh, T, Tuple[T, List[List[int]]]]) -> Tuple[T, Union[T, List[List[int]]]]:
+    """
+    Process a mesh and return its vertices and faces.
+    
+    Args:
+        mesh: Input mesh as vertices and faces tuple, or just vertices
+        
+    Returns:
+        Tuple of (vertices, faces) where vertices is a tensor and faces is either a tensor or list of lists
+    """
+    # Extract vertices and faces from input
+    if not isinstance(mesh, (tuple, list)):
+        mesh = (mesh, None)
+    vs, faces = mesh
 
-@path_init('.obj', 1, True)
-def return_obj_mesh(mesh: Union[V_Mesh, T_Mesh, T, Tuple[T, List[List[int]]]], file_name: str,
+    # Ensure vertices are 3D 
+    if vs.shape[1] < 3:
+        vs = torch.cat((vs, torch.zeros(len(vs), 3 - vs.shape[1], device=vs.device)), dim=1)
+
+    # Process faces if present
+    if faces is not None and isinstance(faces, T):
+        faces = faces + 1  # Convert to 1-based indexing
+
+    return vs, faces
+
+def return_obj_mesh_prev(mesh: Union[V_Mesh, T_Mesh, T, Tuple[T, List[List[int]]]], file_name: str,
                 colors: Optional[COLORS] = None, normals: TN = None, edges=None, spheres=None):
     # return
     # print("exporting mesh as json")
@@ -505,69 +507,8 @@ def return_obj_mesh(mesh: Union[V_Mesh, T_Mesh, T, Tuple[T, List[List[int]]]], f
     if type(mesh) is not tuple and type(mesh) is not list:
         mesh = mesh, None
     vs, faces = mesh
-    # if vs.shape[1] < 3:
-    #     vs = torch.cat((vs, torch.zeros(len(vs), 3 - vs.shape[1], device=vs.device)), dim=1)
-    # if colors is not None:
-    #     colors = colors_to_colors(colors, mesh)
-    # if not os.path.isdir(os.path.dirname(file_name)):
-    #     return
-    # if faces is not None:
-    #     if type(faces) is T:
-    #         faces_new: T = faces + 1
-    #         faces_lst = faces_new.tolist()
-    #     else:
-    #         faces_lst_: List[List[int]] = faces
-    #         faces_lst = []
-    #         for face in faces_lst_:
-    #             faces_lst.append([face[i] + 1 for i in range(len(face))])
-    # with open(file_name, 'w') as f:
-    #     for vi, v in enumerate(vs):
-    #         if colors is None or colors[vi, 0] < 0:
-    #             v_color = ''
-    #         else:
-    #             v_color = ' %f %f %f' % (colors[vi, 0].item(), colors[vi, 1].item(), colors[vi, 2].item())
-    #         f.write("v %f %f %f%s\n" % (v[0], v[1], v[2], v_color))
-    #     if normals is not None:
-    #         for n in normals:
-    #             f.write("vn %f %f %f\n" % (n[0], n[1], n[2]))
-    #     if faces is not None:
-    #         for face in faces_lst:
-    #             face = [str(f) for f in face]
-    #             f.write(f'f {" ".join(face)}\n')
-    #     if edges is not None:
-    #         for edges_id in range(edges.shape[0]):
-    #             f.write(f'\ne {edges[edges_id][0].item():d} {edges[edges_id][1].item():d}')
-    #     if spheres is not None:
-    #         for sphere_id in range(spheres.shape[0]):
-    #             f.write(f'\nsp {spheres[sphere_id].item():d}')
-    # if vs.shape[1] < 3:
-    #     vs = torch.cat((vs, torch.zeros(len(vs), 3 - vs.shape[1], device=vs.device)), dim=1)
-    # if faces is not None:
-    #     if type(faces) is T:
-    #         faces: T = faces + 1
-    #         faces_lst = faces.tolist()
-    #     else:
-    #         faces_lst_: List[List[int]] = faces
-    #         faces_lst = []
-    #         for face in faces_lst_:
-    #             faces_lst.append([face[i] + 1 for i in range(len(face))])
-    #
-    # result = []
-    # for vi, v in enumerate(vs):
-    #     v_color = ''
-    #     result.append(f"v {v[0]:f} {v[1]:f} {v[2]:f}{v_color}\n")
-    # if normals is not None:
-    #     for n in normals:
-    #         result.append(f"vn {n[0]:f} {n[1]:f} {n[2]:f}\n")
-    # if faces is not None:
-    #     for face in faces_lst:
-    #         face = [str(f) for f in face]
-    #         result.append(f'f {" ".join(face)}\n')
-    # if edges is not None:
-    #     for edges_id in range(edges.shape[0]):
-    #         result.append(f'\ne {edges[edges_id][0].item():d} {edges[edges_id][1].item():d}')
-    # # return ''.join(result)
     return vs, faces
+
 
 
 @path_init('.ply', 1, True)
