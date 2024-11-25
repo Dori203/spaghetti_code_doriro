@@ -28,7 +28,7 @@ pip install flask flask-cors trimesh numpy open3d Pillow pyglet
 ### Running the Server
 After installing the dependencies, start the Flask server by running:
 ```bash
-python app.py
+python ui/app.py
 ```
 The server will start on http://localhost:5000 by default.
 ### API Endpoints
