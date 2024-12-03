@@ -1,0 +1,25 @@
+name: new_env
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - pip
+  - pytorch=1.11.0
+  - cudatoolkit=11.3
+  - numpy
+  - pillow
+  - vtk
+  - scikit-image
+  - flask
+  - flask-cors
+  - trimesh
+  - open3d
+  - pyglet
+  - matplotlib
+  - scipy
+  - h5py
+  - pip:
+    - runpod
+    - loguru
