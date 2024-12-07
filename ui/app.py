@@ -100,44 +100,75 @@ class Inference:
         return zh_fake
 
     def get_occ_fun(self, z: T, gmm: Optional[TS] = None):
+        print("A. Entering get_occ_fun")
+        print(f"B. z shape: {z.shape}, device: {z.device}")
+        print(f"C. gmm: {type(gmm) if gmm is not None else 'None'}")
 
         def forward(x: T) -> T:
             nonlocal z
+            print("D. Forward called with x shape:", x.shape)
             x = x.unsqueeze(0)
+            print("E. After unsqueeze x shape:", x.shape)
+
+            print("F. About to call occ_head")
             out = self.model.occ_head(x, z, gmm)[0, :]
+            print("G. occ_head output shape:", out.shape)
+
             if self.opt.loss_func == LossType.CROSS:
+                print("H. Using CROSS loss")
                 out = out.softmax(-1)
                 out = -1 * out[:, 0] + out[:, 2]
-                # out = out.argmax(-1).float() - 1
             elif self.opt.loss_func == LossType.IN_OUT:
+                print("I. Using IN_OUT loss")
                 out = 2 * out.sigmoid_() - 1
             else:
+                print("J. Using default loss")
                 out.clamp_(-.2, .2)
-            # torch.nan_to_num_(out, nan=1)
+
+            print("K. Final output shape:", out.shape)
             return out
 
         if z.dim() == 2:
+            print("L. Expanding z dimension")
             z = z.unsqueeze(0)
+        print("M. Final z shape:", z.shape)
         return forward
 
     def get_mesh(self, z: T, res: int, gmm: Optional[TS], get_time=False) -> Optional[T_Mesh]:
+        try:
+            print("1. Entering get_mesh")
+            print(f"2. z device: {z.device}, shape: {z.shape}")
+            print(f"3. Resolution: {res}")
+            print(f"4. GMM: {type(gmm) if gmm is not None else 'None'}")
 
-        with torch.no_grad():
-            # samples = torch.rand(50000, 3, device=self.device)
-            # out = forward(samples)
-            # mask = out.lt(0)
-            # mesh = samples[mask]
-            if get_time:
-                time_a = self.meshing.occ_meshing(self.get_occ_fun(z, gmm), res=res, get_time=get_time)
+            with torch.no_grad():
+                if get_time:
+                    print("5. Time measurement branch")
+                    time_a = self.meshing.occ_meshing(self.get_occ_fun(z, gmm), res=res, get_time=get_time)
+                    print("6. First occ_meshing completed")
 
-                time_b = sdf_mesh.create_mesh_old(self.get_occ_fun(z, gmm), device=self.opt.device,
-                                                  scale=self.plot_scale, verbose=False,
-                                                  res=res, get_time=get_time)
+                    time_b = sdf_mesh.create_mesh_old(self.get_occ_fun(z, gmm), device=self.opt.device,
+                                                      scale=self.plot_scale, verbose=False,
+                                                      res=res, get_time=get_time)
+                    print("7. create_mesh_old completed")
+                    return time_a, time_b
+                else:
+                    print("8. Regular mesh generation branch")
+                    print("9. About to call get_occ_fun")
+                    occ_fun = self.get_occ_fun(z, gmm)
+                    print("10. get_occ_fun completed")
 
-                return time_a, time_b
-            else:
-                mesh = self.meshing.occ_meshing(self.get_occ_fun(z, gmm), res=res)
-                return mesh
+                    print("11. About to call occ_meshing")
+                    mesh = self.meshing.occ_meshing(occ_fun, res=res)
+                    print(f"12. occ_meshing completed, mesh type: {type(mesh)}")
+
+                    return mesh
+
+        except Exception as e:
+            print(f"Error in get_mesh: {str(e)}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            return None
 
     def plot_occ(self, z: Union[T, TS], gmms: Optional[List[TS]], prefix: str, res=200, verbose=False,
                  use_item_id: bool = False, fixed_items: Optional[Union[T, List[str]]] = None):
