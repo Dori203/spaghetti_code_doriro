@@ -755,12 +755,17 @@ class Inference:
         Returns:
             Single result or list of results in specified format
         """
+        print("Starting random chair generation")
         zh, gmms = self.model.random_samples(num_samples)
+        print(f"Random samples generated: zh shape={zh.shape if hasattr(zh, 'shape') else 'no shape'}")
         results = []
         
         for i in range(num_samples):
+            print(f"Getting mesh for sample {i}")
             mesh = self.get_mesh(zh[i], res, None)
+            print(f"Mesh result: {type(mesh)}, {mesh}")
             vs, faces = mesh
+            print(f"Vertices shape: {vs.shape}, Faces shape: {faces.shape}")
             mesh = trimesh.Trimesh(vertices=vs, faces=faces)
             
             if return_format == 'gltf':
