@@ -774,6 +774,7 @@ class Inference:
                 result = mesh
             results.append(result)
             
+        return "dummy output string"
         return results[0] if num_samples == 1 else results
 
     @models_utils.torch_no_grad  
