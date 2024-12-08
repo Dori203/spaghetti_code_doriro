@@ -9,6 +9,7 @@ import sys
 import os
 import logging
 from typing import List, Optional, Tuple, Union
+from flask import Response
 
 # ------------------------------------- occ inference imports
 sys.path.insert(0, 'C:/Users/dori2/Desktop/Bezalel/Year 5/pgmr/spaghetti_code/spaghetti_code')
@@ -805,7 +806,7 @@ class Inference:
                 result = mesh
             results.append(result)
             
-        return "dummy output string"
+        # return "dummy output string"
         return results[0] if num_samples == 1 else results
 
     @models_utils.torch_no_grad  
@@ -1066,7 +1067,17 @@ def random_part():
 
 @app.route('/random_chair', methods=['POST'])
 def random_chair():
-    return get_random_chair(num_samples = 1)
+    result = get_random_chair(num_samples = 1)
+    return Response(
+        result,
+        mimetype='model/gltf-binary',
+        headers={
+            'Content-Type': 'model/gltf-binary',
+            'Content-Disposition': 'attachment; filename=random_chair.glb'
+        }
+    )
+    # return get_random_chair(num_samples = 1)
+
 
 @app.route('/archive', methods=['POST'])
 def archive():
