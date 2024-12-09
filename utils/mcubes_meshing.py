@@ -5,26 +5,41 @@ from utils.train_utils import Logger
 import constants
 
 
-
 def mcubes_skimage(pytorch_3d_occ_tensor: T, voxel_grid_origin: List[float], voxel_size: float) -> T_Mesh:
+    print(f"Input tensor shape: {pytorch_3d_occ_tensor.shape}")
+    print(
+        f"Input tensor stats - min: {pytorch_3d_occ_tensor.min()}, max: {pytorch_3d_occ_tensor.max()}, mean: {pytorch_3d_occ_tensor.mean()}")
+    print(f"Voxel grid origin: {voxel_grid_origin}, voxel size: {voxel_size}")
+
     numpy_3d_occ_tensor = pytorch_3d_occ_tensor.numpy()
+    print(f"Numpy tensor shape: {numpy_3d_occ_tensor.shape}")
+    print(
+        f"Numpy tensor stats - min: {numpy_3d_occ_tensor.min()}, max: {numpy_3d_occ_tensor.max()}, mean: {numpy_3d_occ_tensor.mean()}")
+
     try:
-        marching_cubes = skimage.measure.marching_cubes if 'marching_cubes' in dir(skimage.measure) else skimage.measure.marching_cubes_lewiner
+        marching_cubes = skimage.measure.marching_cubes if 'marching_cubes' in dir(
+            skimage.measure) else skimage.measure.marching_cubes_lewiner
+        print(f"Using marching cubes function: {marching_cubes.__name__}")
+
         verts, faces, normals, values = marching_cubes(numpy_3d_occ_tensor, level=0.0, spacing=[voxel_size] * 3)
-    except BaseException:
+        print(f"Marching cubes successful - vertices: {verts.shape}, faces: {faces.shape}")
+
+    except Exception as e:
         print("mc failed")
+        print(f"Marching cubes error: {str(e)}")
+        print(f"Error type: {type(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
         return None
 
     # transform from voxel coordinates to camera coordinates
-    # note x and y are flipped in the output of marching_cubes
+    print("Transforming coordinates...")
     mesh_points = np.zeros_like(verts)
     mesh_points[:, 0] = voxel_grid_origin[0] + verts[:, 0]
     mesh_points[:, 1] = voxel_grid_origin[1] + verts[:, 1]
     mesh_points[:, 2] = voxel_grid_origin[2] + verts[:, 2]
-    # apply additional offset and scale
-    # if scale is not None:
-    #     mesh_points = mesh_points / scale
 
+    print(f"Final mesh points shape: {mesh_points.shape}")
     return torch.from_numpy(mesh_points.copy()).float(), torch.from_numpy(faces.copy()).long()
 
 
@@ -152,31 +167,49 @@ class MarchingCubesMeshing:
         return occ_values
 
     def occ_meshing(self, decoder, res: int = 256, get_time: bool = False, verbose=False):
-        start = time.time()
-        voxel_origin = [-1., -1., -1.]
-        voxel_size = 2.0 / (res - 1)
-        occ_values = self.get_grid(decoder, res)
-        if verbose:
-            end = time.time()
-            print("sampling took: %f" % (end - start))
-            if get_time:
-                return end - start
+        try:
+            start = time.time()
+            voxel_origin = [-1., -1., -1.]
+            voxel_size = 2.0 / (res - 1)
 
-        mesh_a = mcubes_skimage(occ_values.data.cpu(), voxel_origin, voxel_size)
-        # mesh_a = mcubes_torch(occ_values, voxel_origin, voxel_size)
+            # Get grid values
+            print("Getting grid values...")
+            occ_values = self.get_grid(decoder, res)
+            print(f"Grid shape: {occ_values.shape}, min: {occ_values.min()}, max: {occ_values.max()}")
 
-        if verbose:
-            end_b = time.time()
-            print("mcube took: %f" % (end_b - end))
-            print("meshing took: %f" % (end_b - start))
-        # if self.device is CPU or True:
-        #
-        # else:
-        # mesh_b = mcubes_torch(occ_values, voxel_origin, voxel_size)
-        # if mesh is not None and 0 < self.max_num_faces < mesh[1].shape[0]:
-        # mesh_a = decimate_igl(mesh_a, self.max_num_faces)
-        # mesh_b = decimate_igl(mesh_b, self.max_num_faces)
-        return mesh_a
+            if verbose:
+                end = time.time()
+                print("sampling took: %f" % (end - start))
+                if get_time:
+                    return end - start
+
+            # Move to CPU and check for valid values
+            occ_data = occ_values.data.cpu()
+            print(f"CPU data shape: {occ_data.shape}, any NaN: {torch.isnan(occ_data).any()}")
+
+            # Run marching cubes
+            print("Starting marching cubes...")
+            try:
+                mesh_a = mcubes_skimage(occ_data, voxel_origin, voxel_size)
+                print(f"Marching cubes successful, mesh vertices: {mesh_a[0].shape}, faces: {mesh_a[1].shape}")
+            except Exception as mc_error:
+                print(f"Marching cubes failed with error: {str(mc_error)}")
+                print(f"Data stats - min: {occ_data.min()}, max: {occ_data.max()}, mean: {occ_data.mean()}")
+                raise
+
+            if verbose:
+                end_b = time.time()
+                print("mcube took: %f" % (end_b - end))
+                print("meshing took: %f" % (end_b - start))
+
+            return mesh_a
+
+        except Exception as e:
+            print(f"Error in occ_meshing: {str(e)}")
+            print(f"Error type: {type(e)}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            return None
 
     def __init__(self, device: D, max_batch: int = 64 ** 3, min_res: int = 128, scale: float = 1,
                  max_num_faces: int = 0, verbose: bool = False):
