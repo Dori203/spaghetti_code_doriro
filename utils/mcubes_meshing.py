@@ -20,8 +20,13 @@ def mcubes_skimage(pytorch_3d_occ_tensor: T, voxel_grid_origin: List[float], vox
         marching_cubes = skimage.measure.marching_cubes if 'marching_cubes' in dir(
             skimage.measure) else skimage.measure.marching_cubes_lewiner
         print(f"Using marching cubes function: {marching_cubes.__name__}")
+        # Calculate level based on data range
+        data_min = numpy_3d_occ_tensor.min()
+        data_max = numpy_3d_occ_tensor.max()
+        level = (data_max + data_min) / 2  # or use a different strategy to set the level
+        print(f"Using level value: {level} for range [{data_min}, {data_max}]")
 
-        verts, faces, normals, values = marching_cubes(numpy_3d_occ_tensor, level=0.0, spacing=[voxel_size] * 3)
+        verts, faces, normals, values = marching_cubes(numpy_3d_occ_tensor, level=level, spacing=[voxel_size] * 3)
         print(f"Marching cubes successful - vertices: {verts.shape}, faces: {faces.shape}")
 
     except Exception as e:
