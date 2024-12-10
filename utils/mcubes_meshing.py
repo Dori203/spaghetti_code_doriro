@@ -119,7 +119,13 @@ class MarchingCubesMeshing:
         # samples[mask] = self.fill_samples(decoder, samples[mask])
 
         samples_ = samples.view(1, 4, base_res, base_res, base_res)
+        print(
+            f"samples_lower stats before nnf.avg_pool3d - min: {samples_[-1, :].min()}, max: {samples_[-1, :].max()}, mean: {samples_[-1, :].mean()}")
+
         samples_ = nnf.avg_pool3d(samples_, stride, stride)
+        print(
+            f"samples_lower stats after nnf.avg_pool3d - min: {samples_[-1, :].min()}, max: {samples_[-1, :].max()}, mean: {samples_[-1, :].mean()}")
+
         samples_ = samples_.view(4, -1)
         res = base_res // stride
         print(f"After pooling - res: {res}")
