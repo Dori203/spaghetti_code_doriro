@@ -118,9 +118,13 @@ class MarchingCubesMeshing:
         print(f"After pooling - res: {res}")
 
         samples_lower = self.fill_recursive(decoder, samples_, stride, res, depth - 1)
+        print(
+            f"samples_lower stats - min: {samples_lower[-1, :].min()}, max: {samples_lower[-1, :].max()}, mean: {samples_lower[-1, :].mean()}")
+
         print(f"After recursive call - samples_lower shape: {samples_lower.shape}")
 
         mask = samples_lower[-1, :].lt(.3)
+
         print(f"Mask sum: {mask.sum()} out of {mask.numel()} (ratio: {mask.sum() / mask.numel():.3f})")
 
         mask = mask.view(1, 1, res, res, res).float()
