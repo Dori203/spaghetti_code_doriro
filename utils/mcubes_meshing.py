@@ -96,6 +96,20 @@ class MarchingCubesMeshing:
             print("Hit min resolution")
             samples_ = self.fill_samples(decoder, samples)
             return samples_
+        kernel_size = 7 + 4 * depth
+        padding = tuple([kernel_size // 2] * 6)
+        # samples_ = samples.transpose(1, 0).view(1, 4, base_res, base_res, base_res)
+        # samples_ = nnf.avg_pool3d(samples_, stride, stride)
+        # samples_ = samples_.view(4, -1).transpose(1, 0)
+        # res = base_res // stride
+        # samples_lower = self.fill_recursive(decoder, samples_, stride, res)
+        # mask = samples_lower[:, -1].lt(.3)
+        # mask = mask.view(1, 1, res, res, res).float()
+        # mask = nnf.pad(mask, padding, mode='replicate')
+        # mask = nnf.max_pool3d(mask, kernel_size, 1)
+        # mask = nnf.interpolate(mask, scale_factor=stride)
+        # mask = mask.flatten().bool()
+        # samples[mask] = self.fill_samples(decoder, samples[mask])
 
         samples_ = samples.view(1, 4, base_res, base_res, base_res)
         samples_ = nnf.avg_pool3d(samples_, stride, stride)
