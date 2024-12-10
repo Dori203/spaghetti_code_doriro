@@ -121,7 +121,9 @@ class Inference:
                 out = -1 * out[:, 0] + out[:, 2]
             elif self.opt.loss_func == LossType.IN_OUT:
                 print("I. Using IN_OUT loss")
+                print(f"Pre-sigmoid values - min: {out.min()}, max: {out.max()}, mean: {out.mean()}")
                 out = 2 * out.sigmoid_() - 1
+                print(f"Final scaled values - min: {out.min()}, max: {out.max()}, mean: {out.mean()}")
             else:
                 print("J. Using default loss")
                 out.clamp_(-.2, .2)
