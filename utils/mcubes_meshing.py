@@ -70,7 +70,11 @@ class MarchingCubesMeshing:
     #     return samples
 
     def fill_samples(self, decoder, samples, device: Optional[D] = None) -> T:
+        print(f"\nFill samples - input shape: {samples.shape}")
+        print(f"Scale value: {self.scale}")
         num_samples = samples.shape[1]
+        print(f"num samples: {num_samples}")
+
         num_iters = num_samples // self.max_batch + int(num_samples % self.max_batch != 0)
         sample_coords = samples[:3]
         if self.verbose:
@@ -78,8 +82,11 @@ class MarchingCubesMeshing:
             logger.start(num_iters, tag='meshing')
         for i in range(num_iters):
             sample_subset = sample_coords[:, i * self.max_batch: min((i + 1) * self.max_batch, num_samples)]
+            print(f"\nBatch {i} - subset shape before scaling: {sample_subset.shape}")
+            print(f"Subset stats before scaling - min: {sample_subset.min()}, max: {sample_subset.max()}")
             if device is not None:
                 sample_subset = sample_subset.to(device)
+                print(f"Subset stats after scaling to device - min: {sample_subset.min()}, max: {sample_subset.max()}")
             sample_subset = sample_subset.T
             samples[3, i * self.max_batch: min((i + 1) * self.max_batch, num_samples)] = (
                 decoder(sample_subset * self.scale).squeeze().detach()
