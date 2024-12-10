@@ -74,7 +74,7 @@ class MarchingCubesMeshing:
         print(f"Scale value: {self.scale}")
         num_samples = samples.shape[1]
         print(f"num samples: {num_samples}")
-
+        print(f"max.batch: {self.max_batch}")
         num_iters = num_samples // self.max_batch + int(num_samples % self.max_batch != 0)
         sample_coords = samples[:3]
         if self.verbose:
