@@ -163,12 +163,21 @@ class MarchingCubesMeshing:
         return samples, res
 
     def get_grid(self, decoder, res):
+        print(f"Initial res: {res}")
         stride = 2
         samples, res = self.register_resolution(res)
+        print(f"After register_resolution - samples shape: {samples.shape}, new res: {res}")
+
         depth = int(np.ceil(np.log2(res) - np.log2(self.min_res)))
+        print(f"Calculated depth: {depth}, min_res: {self.min_res}")
+
         samples = self.fill_recursive(decoder, samples, stride, res, depth)
+        print(f"After fill_recursive - samples shape: {samples.shape}")
+
         occ_values = samples[3]
         occ_values = occ_values.reshape(res, res, res)
+        print(f"Final occ_values shape: {occ_values.shape}")
+
         return occ_values
 
     def occ_meshing(self, decoder, res: int = 256, get_time: bool = False, verbose=False):
@@ -220,7 +229,7 @@ class MarchingCubesMeshing:
                  max_num_faces: int = 0, verbose: bool = False):
         self.device = device
         self.max_batch = max_batch
-        self.max_batch = 32 ** 3 if constants.IS_WINDOWS else max_batch
+        self.max_batch = 32 ** 3 # if constants.IS_WINDOWS else max_batch
         self.min_res = min_res
         self.scale = scale
         self.verbose = verbose
