@@ -32,6 +32,7 @@ def load_model(opt, device, suffix: str = '', override_model: Optional[str] = No
 
     model_path = f'{opt.cp_folder}/model{"_" + suffix if suffix else ""}'
     print(f"Model file exists: {os.path.exists(model_path)}")
+    print(f"Model file location: {model_path}")
     model = model_factory(opt, override_model, device)
     name = opt.model_name if override_model is None else override_model
     if os.path.isfile(model_path):
