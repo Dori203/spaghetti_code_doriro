@@ -101,36 +101,36 @@ class Inference:
         return zh_fake
 
     def get_occ_fun(self, z: T, gmm: Optional[TS] = None):
-        print("A. Entering get_occ_fun")
+        # print("A. Entering get_occ_fun")
         print(f"B. z shape: {z.shape}, device: {z.device}")
         print(f"C. gmm: {type(gmm) if gmm is not None else 'None'}")
 
         def forward(x: T) -> T:
             nonlocal z
-            print("D. Forward called with x shape:", x.shape)
+            # print("D. Forward called with x shape:", x.shape)
             x = x.unsqueeze(0)
-            print("E. After unsqueeze x shape:", x.shape)
+            # print("E. After unsqueeze x shape:", x.shape)
 
-            print("F. About to call occ_head")
+            # print("F. About to call occ_head")
             out = self.model.occ_head(x, z, gmm)[0, :]
-            print("G. occ_head output shape:", out.shape)
+            # print("G. occ_head output shape:", out.shape)
 
             if self.opt.loss_func == LossType.CROSS:
                 print("H. Using CROSS loss")
                 out = out.softmax(-1)
                 out = -1 * out[:, 0] + out[:, 2]
             elif self.opt.loss_func == LossType.IN_OUT:
-                print("I. Using IN_OUT loss")
+                # print("I. Using IN_OUT loss")
                 print(f"Pre-sigmoid values - min: {out.min()}, max: {out.max()}, mean: {out.mean()}")
-                sig = out.sigmoid_()
-                print(f"Final scaled values - min: {sig.min()}, max: {sig.max()}, mean: {sig.mean()}")
+                # sig = out.sigmoid_()
+                # print(f"Sig values - min: {sig.min()}, max: {sig.max()}, mean: {sig.mean()}")
                 out = 2 * out.sigmoid_() - 1
                 print(f"Final scaled values - min: {out.min()}, max: {out.max()}, mean: {out.mean()}")
             else:
                 print("J. Using default loss")
                 out.clamp_(-.2, .2)
 
-            print("K. Final output shape:", out.shape)
+            # print("K. Final output shape:", out.shape)
             return out
 
         if z.dim() == 2:
@@ -141,6 +141,12 @@ class Inference:
 
     def get_mesh(self, z: T, res: int, gmm: Optional[TS], get_time=False) -> Optional[T_Mesh]:
         try:
+            print("Environment info:")
+            print(f"Python version: {sys.version}")
+            print(f"PyTorch version: {torch.__version__}")
+            print(f"PYTHONPATH: {os.environ.get('PYTHONPATH', 'Not set')}")
+            print(f"Current working directory: {os.getcwd()}")
+
             print("1. Entering get_mesh")
             print(f"2. z device: {z.device}, shape: {z.shape}")
             print(f"3. Resolution: {res}")
