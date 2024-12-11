@@ -1,0 +1,10 @@
+
+{
+  "input": {
+    "endpoint": "random_chair",
+    "method": "POST",
+    "data": {
+      "body": "{\"name\":\"doriroMixChairGltf\"}"
+    }
+  }
+}
