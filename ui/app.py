@@ -102,8 +102,8 @@ class Inference:
 
     def get_occ_fun(self, z: T, gmm: Optional[TS] = None):
         # print("A. Entering get_occ_fun")
-        print(f"B. z shape: {z.shape}, device: {z.device}")
-        print(f"C. gmm: {type(gmm) if gmm is not None else 'None'}")
+        # print(f"B. z shape: {z.shape}, device: {z.device}")
+        # print(f"C. gmm: {type(gmm) if gmm is not None else 'None'}")
 
         def forward(x: T) -> T:
             nonlocal z
@@ -116,62 +116,62 @@ class Inference:
             # print("G. occ_head output shape:", out.shape)
 
             if self.opt.loss_func == LossType.CROSS:
-                print("H. Using CROSS loss")
+                # print("H. Using CROSS loss")
                 out = out.softmax(-1)
                 out = -1 * out[:, 0] + out[:, 2]
             elif self.opt.loss_func == LossType.IN_OUT:
                 # print("I. Using IN_OUT loss")
-                print(f"Pre-sigmoid values - min: {out.min()}, max: {out.max()}, mean: {out.mean()}")
+                # print(f"Pre-sigmoid values - min: {out.min()}, max: {out.max()}, mean: {out.mean()}")
                 # sig = out.sigmoid_()
                 # print(f"Sig values - min: {sig.min()}, max: {sig.max()}, mean: {sig.mean()}")
                 out = 2 * out.sigmoid_() - 1
-                print(f"Final scaled values - min: {out.min()}, max: {out.max()}, mean: {out.mean()}")
+                # print(f"Final scaled values - min: {out.min()}, max: {out.max()}, mean: {out.mean()}")
             else:
-                print("J. Using default loss")
+                # print("J. Using default loss")
                 out.clamp_(-.2, .2)
 
             # print("K. Final output shape:", out.shape)
             return out
 
         if z.dim() == 2:
-            print("L. Expanding z dimension")
+            # print("L. Expanding z dimension")
             z = z.unsqueeze(0)
-        print("M. Final z shape:", z.shape)
+        # print("M. Final z shape:", z.shape)
         return forward
 
     def get_mesh(self, z: T, res: int, gmm: Optional[TS], get_time=False) -> Optional[T_Mesh]:
         try:
-            print("Environment info:")
-            print(f"Python version: {sys.version}")
-            print(f"PyTorch version: {torch.__version__}")
-            print(f"PYTHONPATH: {os.environ.get('PYTHONPATH', 'Not set')}")
-            print(f"Current working directory: {os.getcwd()}")
+            # print("Environment info:")
+            # print(f"Python version: {sys.version}")
+            # print(f"PyTorch version: {torch.__version__}")
+            # print(f"PYTHONPATH: {os.environ.get('PYTHONPATH', 'Not set')}")
+            # print(f"Current working directory: {os.getcwd()}")
 
-            print("1. Entering get_mesh")
-            print(f"2. z device: {z.device}, shape: {z.shape}")
-            print(f"3. Resolution: {res}")
-            print(f"4. GMM: {type(gmm) if gmm is not None else 'None'}")
+            # print("1. Entering get_mesh")
+            # print(f"2. z device: {z.device}, shape: {z.shape}")
+            # print(f"3. Resolution: {res}")
+            # print(f"4. GMM: {type(gmm) if gmm is not None else 'None'}")
 
             with torch.no_grad():
                 if get_time:
-                    print("5. Time measurement branch")
+                    # print("5. Time measurement branch")
                     time_a = self.meshing.occ_meshing(self.get_occ_fun(z, gmm), res=res, get_time=get_time)
-                    print("6. First occ_meshing completed")
+                    # print("6. First occ_meshing completed")
 
                     time_b = sdf_mesh.create_mesh_old(self.get_occ_fun(z, gmm), device=self.opt.device,
                                                       scale=self.plot_scale, verbose=False,
                                                       res=res, get_time=get_time)
-                    print("7. create_mesh_old completed")
+                    # print("7. create_mesh_old completed")
                     return time_a, time_b
                 else:
-                    print("8. Regular mesh generation branch")
-                    print("9. About to call get_occ_fun")
+                    # print("8. Regular mesh generation branch")
+                    # print("9. About to call get_occ_fun")
                     occ_fun = self.get_occ_fun(z, gmm)
-                    print("10. get_occ_fun completed")
+                    # print("10. get_occ_fun completed")
 
-                    print("11. About to call occ_meshing")
+                    # print("11. About to call occ_meshing")
                     mesh = self.meshing.occ_meshing(occ_fun, res=res)
-                    print(f"12. occ_meshing completed, mesh type: {type(mesh)}")
+                    # print(f"12. occ_meshing completed, mesh type: {type(mesh)}")
 
                     return mesh
 
@@ -532,7 +532,7 @@ class Inference:
             for i in range(num_mid):
                 mesh = self.get_mesh(zh[i], res)
                 files_utils.export_mesh(mesh, f"{self.opt.cp_folder}/interpolate/{item_a}_{item_b}_{i}")
-                print(f'done {i + 1:d}/{num_mid}')
+                # print(f'done {i + 1:d}/{num_mid}')
 
     def interpolate_doriro(self, item_a: Union[str, int], item_b: Union[str, int], num_mid: int, res: int = 200):
         if type(item_a) is str:
@@ -543,7 +543,7 @@ class Inference:
             for i in range(num_mid):
                 mesh = self.get_mesh(zh[i], res, gmm)
                 files_utils.export_mesh(mesh, f"{self.opt.cp_folder}/interpolate/{item_a}_{item_b}_{i}")
-                print(f'done {i + 1:d}/{num_mid}')
+                # print(f'done {i + 1:d}/{num_mid}')
 
     @property
     def device(self):
@@ -555,7 +555,7 @@ class Inference:
         zh, _, gmms, attn_a = self.model.get_embeddings(fixed_items.to(self.device))
         zh, attn_b = self.model.merge_zh(zh, gmms)
         for res_ in res:
-            print(f"\nmeasure {res_:d}")
+            # print(f"\nmeasure {res_:d}")
             times_a, times_b = [], []
             for i in range(len(zh)):
                 time_a, time_b = self.get_mesh(zh[i], res_, get_time=True)
@@ -797,17 +797,17 @@ class Inference:
         Returns:
             Single result or list of results in specified format
         """
-        print("Starting random chair generation")
+        # print("Starting random chair generation")
         zh, gmms = self.model.random_samples(num_samples)
-        print(f"Random samples generated: zh shape={zh.shape if hasattr(zh, 'shape') else 'no shape'}")
+        # print(f"Random samples generated: zh shape={zh.shape if hasattr(zh, 'shape') else 'no shape'}")
         results = []
         
         for i in range(num_samples):
-            print(f"Getting mesh for sample {i}")
+            # print(f"Getting mesh for sample {i}")
             mesh = self.get_mesh(zh[i], res, None)
-            print(f"Mesh result: {type(mesh)}, {mesh}")
+            # print(f"Mesh result: {type(mesh)}, {mesh}")
             vs, faces = mesh
-            print(f"Vertices shape: {vs.shape}, Faces shape: {faces.shape}")
+            # print(f"Vertices shape: {vs.shape}, Faces shape: {faces.shape}")
             mesh = trimesh.Trimesh(vertices=vs, faces=faces)
             
             if return_format == 'gltf':
