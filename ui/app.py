@@ -1036,7 +1036,6 @@ def mix():
     
     # Parse request data
     data = request.get_json()  # Remove the json.loads() call
-    print(data)
     chairs = [int(data.get(f'chair_{i}', '')) for i in range(1,5)]
     alphas = [
         inference.get_alpha(
@@ -1047,7 +1046,15 @@ def mix():
         ) for i in range(1,5)
     ]
         
-    return get_mix(chairs, alphas)
+    result = get_mix(chairs, alphas)
+    return Response(
+        result,
+        mimetype='model/gltf-binary',
+        headers={
+            'Content-Type': 'model/gltf-binary',
+            'Content-Disposition': 'attachment; filename=random_chair.glb'
+        }
+    )
 
 @app.route('/random_part', methods=['POST'])
 def random_part():
@@ -1063,8 +1070,15 @@ def random_part():
     data = request.get_json()  # This already gives you parsed JSON
     chair = int(data.get('chair', ''))
     ind_to_randomize = int(data.get('random_index', ''))
-    return get_random_parts(chair, ind_to_randomize)
-
+    result = get_random_parts(chair, ind_to_randomize)
+    return Response(
+        result,
+        mimetype='model/gltf-binary',
+        headers={
+            'Content-Type': 'model/gltf-binary',
+            'Content-Disposition': 'attachment; filename=random_chair.glb'
+        }
+    )
 @app.route('/random_chair', methods=['POST'])
 def random_chair():
     result = get_random_chair(num_samples = 1)
