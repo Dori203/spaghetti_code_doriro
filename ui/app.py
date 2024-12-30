@@ -1035,7 +1035,7 @@ def mix():
     global inference
     
     # Parse request data
-    data = json.loads(request.get_json().get('body', ''))
+    data = request.get_json()  # Remove the json.loads() call
     chairs = [int(data.get(f'chair_{i}', '')) for i in range(1,5)]
     alphas = [
         inference.get_alpha(
@@ -1045,17 +1045,6 @@ def mix():
             int(data.get(f'chair_{i}_top', ''))
         ) for i in range(1,5)
     ]
-
-    # Restart inference every 10 requests to prevent memory issues
-    restart_counter += 1
-    if restart_counter == 10:
-        inference = Inference(opt_)
-        names = files_utils.collect(f"{opt_.cp_folder}/fresh_mix_origin/", '.pkl')
-        paths = [''.join(item) for item in names]
-        sample_names = [name[1] for name in names]
-        sample_numbers = [int(s.split("_")[1]) for s in sample_names]
-        inference.init_dict(paths, sample_numbers)
-        restart_counter = 0
         
     return get_mix(chairs, alphas)
 
@@ -1070,7 +1059,7 @@ def random_part():
     
     Returns the modified chair as a GLTF file.
     """
-    data = json.loads(request.get_json().get('body', ''))
+    data = request.get_json()  # This already gives you parsed JSON
     chair = int(data.get('chair', ''))
     ind_to_randomize = int(data.get('random_index', ''))
     return get_random_parts(chair, ind_to_randomize)
