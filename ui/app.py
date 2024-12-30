@@ -1036,6 +1036,7 @@ def mix():
     
     # Parse request data
     data = request.get_json()  # Remove the json.loads() call
+    print(data)
     chairs = [int(data.get(f'chair_{i}', '')) for i in range(1,5)]
     alphas = [
         inference.get_alpha(
